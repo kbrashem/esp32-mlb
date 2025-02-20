@@ -254,42 +254,8 @@ void setup() {
   }
   killWiFi(); // WiFi no longer needed
 
-  // Disable Indoor Temperature and Humidity
   float inTemp = NAN;
   float inHumidity = NAN;
-
-  // Fetch inTemp and inHumidity from call_api.py
-
-  // // GET INDOOR TEMPERATURE AND HUMIDITY, start BME280...
-  // pinMode(PIN_BME_PWR, OUTPUT);
-  // digitalWrite(PIN_BME_PWR, HIGH);
-  // float inTemp = NAN;
-  // float inHumidity = NAN;
-  // Serial.print(String(TXT_READING_FROM) + " BME280... ");
-  // TwoWire I2C_bme = TwoWire(0);
-  // Adafruit_BME280 bme;
-
-  // I2C_bme.begin(PIN_BME_SDA, PIN_BME_SCL, 100000); // 100kHz
-  // if (bme.begin(BME_ADDRESS, &I2C_bme)) {
-  //   inTemp = bme.readTemperature();  // Celsius
-  //   inHumidity = bme.readHumidity(); // %
-
-  //   // check if BME readings are valid
-  //   // note: readings are checked again before drawing to screen. If a
-  //   reading
-  //   //       is not a number (NAN) then an error occurred, a dash '-' will be
-  //   //       displayed.
-  //   if (std::isnan(inTemp) || std::isnan(inHumidity)) {
-  //     statusStr = "BME " + String(TXT_READ_FAILED);
-  //     Serial.println(statusStr);
-  //   } else {
-  //     Serial.println(TXT_SUCCESS);
-  //   }
-  // } else {
-  //   statusStr = "BME " + String(TXT_NOT_FOUND); // check wiring
-  //   Serial.println(statusStr);
-  // }
-  // digitalWrite(PIN_BME_PWR, LOW);
 
   String refreshTimeStr;
   getRefreshTimeStr(refreshTimeStr, timeConfigured, &timeInfo);
@@ -307,7 +273,6 @@ void setup() {
 #if DISPLAY_ALERTS
     drawAlerts(owm_onecall.alerts, CITY_STRING, dateStr);
 #endif
-    /*display.drawGreyPixmap(bitmapData, 2, 0, 0, 800, 480);*/
     drawStatusBar(statusStr, refreshTimeStr, wifiRSSI, batteryVoltage);
   } while (display.nextPage());
   powerOffDisplay();

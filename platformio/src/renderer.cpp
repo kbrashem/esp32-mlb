@@ -37,53 +37,25 @@
 #include "icons/icons_64x64.h"
 #include "icons/icons_96x96.h"
 
-#define GxEPD2_DISPLAY_CLASS GxEPD2_4G_4G
-#define GxEPD2_DRIVER_CLASS GxEPD2_750_T7Y
-#define MAX_DISPLAY_BUFFER_SIZE 65536ul // e.g
-#define MAX_HEIGHT(EPD)                                                        \
-  (EPD::HEIGHT <= MAX_DISPLAY_BUFFER_SIZE / (EPD::WIDTH / 4)                   \
-       ? EPD::HEIGHT                                                           \
-       : MAX_DISPLAY_BUFFER_SIZE / (EPD::WIDTH / 4))
-
-GxEPD2_DISPLAY_CLASS<GxEPD2_DRIVER_CLASS, MAX_HEIGHT(GxEPD2_DRIVER_CLASS)>
-    display(GxEPD2_DRIVER_CLASS(PIN_EPD_CS, PIN_EPD_DC, PIN_EPD_RST,
-                                PIN_EPD_BUSY));
-
-#undef MAX_DISPLAY_BUFFER_SIZE
-#undef MAX_HEIGHT
-
-/*#ifdef DISP_BW_V2*/
-/*  GxEPD2_BW<GxEPD2_750_T7,*/
-/*            GxEPD2_750_T7::HEIGHT> display(*/
-/*    GxEPD2_750_T7(PIN_EPD_CS,*/
-/*                  PIN_EPD_DC,*/
-/*                  PIN_EPD_RST,*/
-/*                  PIN_EPD_BUSY));*/
-/*#endif*/
-/*#ifdef DISP_3C_B*/
-/*  GxEPD2_3C<GxEPD2_750c_Z08,*/
-/*            GxEPD2_750c_Z08::HEIGHT / 2> display(*/
-/*    GxEPD2_750c_Z08(PIN_EPD_CS,*/
-/*                    PIN_EPD_DC,*/
-/*                    PIN_EPD_RST,*/
-/*                    PIN_EPD_BUSY));*/
-/*#endif*/
-/*#ifdef DISP_7C_F*/
-/*  GxEPD2_7C<GxEPD2_730c_GDEY073D46,*/
-/*            GxEPD2_730c_GDEY073D46::HEIGHT / 4> display(*/
-/*    GxEPD2_730c_GDEY073D46(PIN_EPD_CS,*/
-/*                           PIN_EPD_DC,*/
-/*                           PIN_EPD_RST,*/
-/*                           PIN_EPD_BUSY));*/
-/*#endif*/
-/*#ifdef DISP_BW_V1*/
-/*  GxEPD2_BW<GxEPD2_750,*/
-/*            GxEPD2_750::HEIGHT> display(*/
-/*    GxEPD2_750(PIN_EPD_CS,*/
-/*               PIN_EPD_DC,*/
-/*               PIN_EPD_RST,*/
-/*               PIN_EPD_BUSY));*/
-/*#endif*/
+#ifdef DISP_BW_V2
+/*GxEPD2_BW<GxEPD2_750_T7, GxEPD2_750_T7::HEIGHT>*/
+/*    display(GxEPD2_750_T7(PIN_EPD_CS, PIN_EPD_DC, PIN_EPD_RST,
+ * PIN_EPD_BUSY));*/
+GxEPD2_BW<GxEPD2_750_GDEY075T7, GxEPD2_750_GDEY075T7::HEIGHT> display(
+    GxEPD2_750_GDEY075T7(PIN_EPD_CS, PIN_EPD_DC, PIN_EPD_RST, PIN_EPD_BUSY));
+#endif
+#ifdef DISP_3C_B
+GxEPD2_3C<GxEPD2_750c_Z08, GxEPD2_750c_Z08::HEIGHT / 2>
+    display(GxEPD2_750c_Z08(PIN_EPD_CS, PIN_EPD_DC, PIN_EPD_RST, PIN_EPD_BUSY));
+#endif
+#ifdef DISP_7C_F
+GxEPD2_7C<GxEPD2_730c_GDEY073D46, GxEPD2_730c_GDEY073D46::HEIGHT / 4> display(
+    GxEPD2_730c_GDEY073D46(PIN_EPD_CS, PIN_EPD_DC, PIN_EPD_RST, PIN_EPD_BUSY));
+#endif
+#ifdef DISP_BW_V1
+GxEPD2_BW<GxEPD2_750, GxEPD2_750::HEIGHT>
+    display(GxEPD2_750(PIN_EPD_CS, PIN_EPD_DC, PIN_EPD_RST, PIN_EPD_BUSY));
+#endif
 
 #ifndef ACCENT_COLOR
 #define ACCENT_COLOR GxEPD_BLACK
@@ -216,12 +188,11 @@ void drawMultiLnString(int16_t x, int16_t y, const String &text,
 
 /* Initialize e-paper display
  */
-RTC_DATA_ATTR int initCount = 0;
 
 void initDisplay() {
-  initCount++;
   pinMode(PIN_EPD_PWR, OUTPUT);
   digitalWrite(PIN_EPD_PWR, HIGH);
+  delay(100);
 #ifdef DRIVER_WAVESHARE
   display.init(115200, true, 2, false);
 #endif
@@ -238,16 +209,6 @@ void initDisplay() {
   display.setTextWrap(false);
   // display.fillScreen(GxEPD_WHITE);
   display.setFullWindow();
-
-  // Check if the init count is 1 or a multiple of 50
-  if (initCount == 1 || (initCount % 50 == 0)) {
-    Serial.println("initDisplay for " + String(initCount) +
-                   " times, run clearScreen");
-    display.clearScreen();
-  } else {
-    Serial.println("initDisplay for " + String(initCount) + " times");
-  }
-
   display.firstPage(); // use paged drawing mode, sets fillScreen(GxEPD_WHITE)
   return;
 } // end initDisplay
@@ -1236,14 +1197,12 @@ void drawCurrentConditions(const owm_current_t &current,
     pos -= sp + 8;
 
     // last refresh
-    /*
     dataColor = GxEPD_BLACK;
     drawString(pos, DISP_HEIGHT - 1 - 2, refreshTimeStr, RIGHT, dataColor);
     pos -= getStringWidth(refreshTimeStr) + 25;
     display.drawInvertedBitmap(pos, DISP_HEIGHT - 1 - 21, wi_refresh_32x32, 32,
                                32, dataColor);
     pos -= sp;
-    */
 
     // status
     dataColor = ACCENT_COLOR;
