@@ -147,8 +147,8 @@
 //   2030-12-31 23:59:59.
 // (uncomment exactly one)
 // #define USE_HTTP
-// #define USE_HTTPS_NO_CERT_VERIF
-#define USE_HTTPS_WITH_CERT_VERIF
+#define USE_HTTPS_NO_CERT_VERIF
+// #define USE_HTTPS_WITH_CERT_VERIF
 
 // WIND DIRECTION INDICATOR
 // Choose whether the wind direction indicator should be an arrow, number, or
@@ -241,7 +241,7 @@
 //   provides alerts in English only. Any combination of these factors may make
 //   it undesirable to display alerts in some regions.
 //   Disable alerts by changing the DISPLAY_ALERTS macro to 0.
-#define DISPLAY_ALERTS 1
+#define DISPLAY_ALERTS 0
 
 // STATUS BAR EXTRAS
 //   Extra information that can be displayed on the status bar. Set to 1 to
@@ -263,7 +263,7 @@
 //   level 0: basic status information, assists troubleshooting (default)
 //   level 1: increased verbosity for debugging
 //   level 2: print api responses to serial monitor
-#define DEBUG_LEVEL 0
+#define DEBUG_LEVEL 1
 
 // Set the below constants in "config.cpp"
 extern const uint8_t PIN_BAT_ADC;

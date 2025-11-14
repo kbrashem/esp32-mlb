@@ -20,6 +20,7 @@
 
 #include "api_response.h"
 #include "config.h"
+#include "mlb_response.h"
 #include <Arduino.h>
 #include <time.h>
 #include <vector>
@@ -77,5 +78,7 @@ void drawStatusBar(const String &statusStr, const String &refreshTimeStr,
                    int rssi, uint32_t batVoltage);
 void drawError(const uint8_t *bitmap_196x196, const String &errMsgLn1,
                const String &errMsgLn2 = "");
+void drawMlbStandings(const mlb_standings_resp_t &mlb_standings);
+void drawMlbNextGame(const mlb_next_game_t &mlb_next_game);
 
 #endif

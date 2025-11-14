@@ -22,6 +22,8 @@
 #include "config.h"
 #include "conversions.h"
 #include "display_utils.h"
+#include "mlb_response.h"
+#include <Arduino.h>
 
 // fonts
 #include FONT_HEADER
@@ -192,7 +194,6 @@ void drawMultiLnString(int16_t x, int16_t y, const String &text,
 void initDisplay() {
   pinMode(PIN_EPD_PWR, OUTPUT);
   digitalWrite(PIN_EPD_PWR, HIGH);
-  delay(100);
 #ifdef DRIVER_WAVESHARE
   display.init(115200, true, 2, false);
 #endif
@@ -1235,7 +1236,73 @@ void drawCurrentConditions(const owm_current_t &current,
                         errMsgLn1, CENTER, DISP_WIDTH - 200, 2, 55);
     }
     display.drawInvertedBitmap(DISP_WIDTH / 2 - 196 / 2,
-                               DISP_HEIGHT / 2 - 196 / 2 - 21, bitmap_196x196,
+                               DISP_HEIGHT / 1 - 196 / 2 - 21, bitmap_196x196,
                                196, 196, ACCENT_COLOR);
     return;
   } // end drawError
+
+  void drawMlbStandings(const mlb_standings_resp_t &mlb_standings) {
+    String dataStr;
+
+    const int xPos0 = 5;
+    const int xCol1 = xPos0 + 280;
+    const int xCol2 = xPos0 + 325;
+    const int xCol3 = xPos0 + 380;
+
+    /*const int yPos0 = 25;*/
+    String divs[3] = {"AL East", "AL Central", "AL West"};
+
+    // Loop through strings
+    for (int d = 2; d >= 0; d--) {
+
+      const int yPos1 = 20 + d * 160;
+
+      /*display.setFont(&FONT_16pt8b);*/
+      /*drawString(xPos0, yPos0, mlb_standings.divisions[2].division_name,
+       * LEFT);*/
+      display.setFont(&FONT_14pt8b);
+      drawString(xPos0 + 40, yPos1, divs[d], LEFT);
+      drawString(xCol1, yPos1, "W", RIGHT);
+      drawString(xCol2, yPos1, "L", RIGHT);
+      drawString(xCol3, yPos1, "GB", RIGHT);
+      for (int i = 0; i < 5; ++i) {
+        int y = yPos1 + 26 + (i * 26);
+        display.setFont(&FONT_14pt8b);
+        drawString(xPos0, y, mlb_standings.divisions[d].teams[i].team_name,
+                   LEFT);
+        display.setFont(&FONT_12pt8b);
+        dataStr =
+            String(static_cast<int>(mlb_standings.divisions[d].teams[i].wins));
+        drawString(xCol1, y, dataStr, RIGHT);
+        dataStr = String(
+            static_cast<int>(mlb_standings.divisions[d].teams[i].losses));
+        drawString(xCol2, y, dataStr, RIGHT);
+
+        float gb = mlb_standings.divisions[d].teams[i].games_back;
+        if (gb - (int)gb == 0) {
+          dataStr = String(static_cast<int>(gb));
+        } else {
+          dataStr = String(static_cast<int>(gb)) + ".5";
+        }
+        drawString(xCol3, y, dataStr, RIGHT);
+      }
+    }
+    return;
+  } // end drawMLBStandings
+
+  void drawMlbNextGame(const mlb_next_game_t &mlb_next_game) {
+    String dataStr;
+
+    int xPos0 = 440;
+    int yPos0 = 280;
+
+    // Loop through strings
+    display.setFont(&FONT_12pt8b);
+    drawString(xPos0, yPos0, mlb_next_game.game_datetime_local, LEFT);
+    yPos0 += 24;
+    drawString(xPos0, yPos0, mlb_next_game.away_name, LEFT);
+    yPos0 += 24;
+    drawString(xPos0, yPos0, "@" + mlb_next_game.home_name, LEFT);
+
+    return;
+  } // end drawMLBNextGame

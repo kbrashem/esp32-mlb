@@ -38,6 +38,7 @@
 #include "client_utils.h"
 #include "config.h"
 #include "display_utils.h"
+#include "mlb_response.h"
 #include "renderer.h"
 #ifndef USE_HTTP
 #include <WiFiClientSecure.h>
@@ -269,3 +270,98 @@ void printHeapUsage() {
                  " B");
   return;
 }
+
+#ifdef USE_HTTP
+int getMlbStandings(WiFiClient &client, mlb_standings_resp_t &r)
+#else
+int getMlbStandings(WiFiClientSecure &client, mlb_standings_resp_t &r)
+#endif
+{
+  int attempts = 0;
+  bool rxSuccess = false;
+  DeserializationError jsonErr = {};
+  String uri = "/api/v1/"
+               "standings?leagueId=103&season=2025&standingsTypes="
+               "regularSeason&hydrate=division,conference,sport,league";
+  String sanitizedUri = "https://statsapi.mlb.com" + uri;
+
+  Serial.print(TXT_ATTEMPTING_HTTP_REQ);
+  Serial.println(": " + sanitizedUri);
+  int httpResponse = 0;
+  while (!rxSuccess && attempts < 3) {
+    wl_status_t connection_status = WiFi.status();
+    if (connection_status != WL_CONNECTED) {
+      // -512 offset distinguishes these errors from httpClient errors
+      return -512 - static_cast<int>(connection_status);
+    }
+
+    HTTPClient http;
+    http.useHTTP10(true);
+    http.setConnectTimeout(HTTP_CLIENT_TCP_TIMEOUT); // default 5000ms
+    http.setTimeout(HTTP_CLIENT_TCP_TIMEOUT);        // default 5000ms
+    http.begin(client, sanitizedUri);
+    httpResponse = http.GET();
+    if (httpResponse == HTTP_CODE_OK) {
+      jsonErr = deserializeMlbStandings(http.getStream(), r);
+      if (jsonErr) {
+        // -256 offset distinguishes these errors from httpClient errors
+        httpResponse = -256 - static_cast<int>(jsonErr.code());
+      }
+      rxSuccess = !jsonErr;
+    }
+    client.stop();
+    http.end();
+    Serial.println("  " + String(httpResponse, DEC) + " " +
+                   getHttpResponsePhrase(httpResponse));
+    ++attempts;
+  }
+
+  return httpResponse;
+} // getMlbStandings
+
+#ifdef USE_HTTP
+int getMlbNextGame(WiFiClient &client, mlb_next_game_t &r)
+#else
+int getMlbNextGame(WiFiClientSecure &client, mlb_next_game_t &r)
+#endif
+{
+  int attempts = 0;
+  bool rxSuccess = false;
+  DeserializationError jsonErr = {};
+  String uri = "/api/v1/"
+               "schedule?teamId=136&sportId=1";
+  String sanitizedUri = "https://statsapi.mlb.com" + uri;
+
+  Serial.print(TXT_ATTEMPTING_HTTP_REQ);
+  Serial.println(": " + sanitizedUri);
+  int httpResponse = 0;
+  while (!rxSuccess && attempts < 3) {
+    wl_status_t connection_status = WiFi.status();
+    if (connection_status != WL_CONNECTED) {
+      // -512 offset distinguishes these errors from httpClient errors
+      return -512 - static_cast<int>(connection_status);
+    }
+
+    HTTPClient http;
+    http.useHTTP10(true);
+    http.setConnectTimeout(HTTP_CLIENT_TCP_TIMEOUT); // default 5000ms
+    http.setTimeout(HTTP_CLIENT_TCP_TIMEOUT);        // default 5000ms
+    http.begin(client, sanitizedUri);
+    httpResponse = http.GET();
+    if (httpResponse == HTTP_CODE_OK) {
+      jsonErr = deserializeMlbNextGame(http.getStream(), r);
+      if (jsonErr) {
+        // -256 offset distinguishes these errors from httpClient errors
+        httpResponse = -256 - static_cast<int>(jsonErr.code());
+      }
+      rxSuccess = !jsonErr;
+    }
+    client.stop();
+    http.end();
+    Serial.println("  " + String(httpResponse, DEC) + " " +
+                   getHttpResponsePhrase(httpResponse));
+    ++attempts;
+  }
+
+  return httpResponse;
+} // getMlbNextGame
