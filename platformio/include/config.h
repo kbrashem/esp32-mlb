@@ -18,8 +18,8 @@
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
 
-#include <cstdint>
 #include <Arduino.h>
+#include <cstdint>
 
 // E-PAPER PANEL
 // This project supports the following E-Paper panels:
@@ -45,12 +45,12 @@
 // 3 COLOR E-INK ACCENT COLOR
 // Defines the 3rd color to be used when a 3+ color display is selected.
 #if defined(DISP_3C_B) || defined(DISP_7C_F)
-  // #define ACCENT_COLOR GxEPD_BLACK
-  #define ACCENT_COLOR GxEPD_RED
-  // #define ACCENT_COLOR GxEPD_GREEN
-  // #define ACCENT_COLOR GxEPD_BLUE
-  // #define ACCENT_COLOR GxEPD_YELLOW
-  // #define ACCENT_COLOR GxEPD_ORANGE
+// #define ACCENT_COLOR GxEPD_BLACK
+#define ACCENT_COLOR GxEPD_RED
+// #define ACCENT_COLOR GxEPD_GREEN
+// #define ACCENT_COLOR GxEPD_BLUE
+// #define ACCENT_COLOR GxEPD_YELLOW
+// #define ACCENT_COLOR GxEPD_ORANGE
 #endif
 
 // LOCALE
@@ -147,8 +147,8 @@
 //   2030-12-31 23:59:59.
 // (uncomment exactly one)
 // #define USE_HTTP
-// #define USE_HTTPS_NO_CERT_VERIF
-#define USE_HTTPS_WITH_CERT_VERIF
+#define USE_HTTPS_NO_CERT_VERIF
+// #define USE_HTTPS_WITH_CERT_VERIF
 
 // WIND DIRECTION INDICATOR
 // Choose whether the wind direction indicator should be an arrow, number, or
@@ -241,13 +241,13 @@
 //   provides alerts in English only. Any combination of these factors may make
 //   it undesirable to display alerts in some regions.
 //   Disable alerts by changing the DISPLAY_ALERTS macro to 0.
-#define DISPLAY_ALERTS 1
+#define DISPLAY_ALERTS 0
 
 // STATUS BAR EXTRAS
 //   Extra information that can be displayed on the status bar. Set to 1 to
 //   enable.
 #define STATUS_BAR_EXTRAS_BAT_VOLTAGE 0
-#define STATUS_BAR_EXTRAS_WIFI_RSSI   0
+#define STATUS_BAR_EXTRAS_WIFI_RSSI 0
 
 // BATTERY MONITORING
 //   You may choose to power your weather display with or without a battery.
@@ -263,7 +263,7 @@
 //   level 0: basic status information, assists troubleshooting (default)
 //   level 1: increased verbosity for debugging
 //   level 2: print api responses to serial monitor
-#define DEBUG_LEVEL 0
+#define DEBUG_LEVEL 1
 
 // Set the below constants in "config.cpp"
 extern const uint8_t PIN_BAT_ADC;
@@ -275,10 +275,6 @@ extern const uint8_t PIN_EPD_SCK;
 extern const uint8_t PIN_EPD_MISO;
 extern const uint8_t PIN_EPD_MOSI;
 extern const uint8_t PIN_EPD_PWR;
-extern const uint8_t PIN_BME_SDA;
-extern const uint8_t PIN_BME_SCL;
-extern const uint8_t PIN_BME_PWR;
-extern const uint8_t BME_ADDRESS;
 extern const char *WIFI_SSID;
 extern const char *WIFI_PASSWORD;
 extern const unsigned long WIFI_TIMEOUT;
@@ -309,101 +305,90 @@ extern const unsigned long LOW_BATTERY_SLEEP_INTERVAL;
 extern const unsigned long VERY_LOW_BATTERY_SLEEP_INTERVAL;
 extern const uint32_t MAX_BATTERY_VOLTAGE;
 extern const uint32_t MIN_BATTERY_VOLTAGE;
+extern const int MLB_TEAM_ID;
+extern int MLB_LEAGUE_ID;
+extern const int MLB_SEASON_YEAR;
 
 // CONFIG VALIDATION - DO NOT MODIFY
-#if !(  defined(DISP_BW_V2)  \
-      ^ defined(DISP_3C_B)   \
-      ^ defined(DISP_7C_F)   \
-      ^ defined(DISP_BW_V1))
-  #error Invalid configuration. Exactly one display panel must be selected.
+#if !(defined(DISP_BW_V2) ^ defined(DISP_3C_B) ^ defined(DISP_7C_F) ^          \
+      defined(DISP_BW_V1))
+#error Invalid configuration. Exactly one display panel must be selected.
 #endif
-#if !(  defined(DRIVER_WAVESHARE) \
-      ^ defined(DRIVER_DESPI_C02))
-  #error Invalid configuration. Exactly one driver board must be selected.
+#if !(defined(DRIVER_WAVESHARE) ^ defined(DRIVER_DESPI_C02))
+#error Invalid configuration. Exactly one driver board must be selected.
 #endif
 #if !(defined(LOCALE))
-  #error Invalid configuration. Locale not selected.
+#error Invalid configuration. Locale not selected.
 #endif
-#if !(  defined(UNITS_TEMP_KELVIN)      \
-      ^ defined(UNITS_TEMP_CELSIUS)     \
-      ^ defined(UNITS_TEMP_FAHRENHEIT))
-  #error Invalid configuration. Exactly one temperature unit must be selected.
+#if !(defined(UNITS_TEMP_KELVIN) ^ defined(UNITS_TEMP_CELSIUS) ^               \
+      defined(UNITS_TEMP_FAHRENHEIT))
+#error Invalid configuration. Exactly one temperature unit must be selected.
 #endif
-#if !(  defined(UNITS_SPEED_METERSPERSECOND)   \
-      ^ defined(UNITS_SPEED_FEETPERSECOND)     \
-      ^ defined(UNITS_SPEED_KILOMETERSPERHOUR) \
-      ^ defined(UNITS_SPEED_MILESPERHOUR)      \
-      ^ defined(UNITS_SPEED_KNOTS)             \
-      ^ defined(UNITS_SPEED_BEAUFORT))
-  #error Invalid configuration. Exactly one wind speed unit must be selected.
+#if !(defined(UNITS_SPEED_METERSPERSECOND) ^                                   \
+      defined(UNITS_SPEED_FEETPERSECOND) ^                                     \
+      defined(UNITS_SPEED_KILOMETERSPERHOUR) ^                                 \
+      defined(UNITS_SPEED_MILESPERHOUR) ^ defined(UNITS_SPEED_KNOTS) ^         \
+      defined(UNITS_SPEED_BEAUFORT))
+#error Invalid configuration. Exactly one wind speed unit must be selected.
 #endif
-#if !(  defined(UNITS_PRES_HECTOPASCALS)             \
-      ^ defined(UNITS_PRES_PASCALS)                  \
-      ^ defined(UNITS_PRES_MILLIMETERSOFMERCURY)     \
-      ^ defined(UNITS_PRES_INCHESOFMERCURY)          \
-      ^ defined(UNITS_PRES_MILLIBARS)                \
-      ^ defined(UNITS_PRES_ATMOSPHERES)              \
-      ^ defined(UNITS_PRES_GRAMSPERSQUARECENTIMETER) \
-      ^ defined(UNITS_PRES_POUNDSPERSQUAREINCH))
-  #error Invalid configuration. Exactly one pressure unit must be selected.
+#if !(defined(UNITS_PRES_HECTOPASCALS) ^ defined(UNITS_PRES_PASCALS) ^         \
+      defined(UNITS_PRES_MILLIMETERSOFMERCURY) ^                               \
+      defined(UNITS_PRES_INCHESOFMERCURY) ^ defined(UNITS_PRES_MILLIBARS) ^    \
+      defined(UNITS_PRES_ATMOSPHERES) ^                                        \
+      defined(UNITS_PRES_GRAMSPERSQUARECENTIMETER) ^                           \
+      defined(UNITS_PRES_POUNDSPERSQUAREINCH))
+#error Invalid configuration. Exactly one pressure unit must be selected.
 #endif
-#if !(  defined(UNITS_DIST_KILOMETERS) \
-      ^ defined(UNITS_DIST_MILES))
-  #error Invalid configuration. Exactly one distance unit must be selected.
+#if !(defined(UNITS_DIST_KILOMETERS) ^ defined(UNITS_DIST_MILES))
+#error Invalid configuration. Exactly one distance unit must be selected.
 #endif
-#if !(  defined(UNITS_HOURLY_PRECIP_POP)         \
-      ^ defined(UNITS_HOURLY_PRECIP_MILLIMETERS) \
-      ^ defined(UNITS_HOURLY_PRECIP_CENTIMETERS) \
-      ^ defined(UNITS_HOURLY_PRECIP_INCHES))
-  #error Invalid configuration. Exactly one houly precipitation measurement must be selected.
+#if !(defined(UNITS_HOURLY_PRECIP_POP) ^                                       \
+      defined(UNITS_HOURLY_PRECIP_MILLIMETERS) ^                               \
+      defined(UNITS_HOURLY_PRECIP_CENTIMETERS) ^                               \
+      defined(UNITS_HOURLY_PRECIP_INCHES))
+#error Invalid configuration. Exactly one houly precipitation measurement must be selected.
 #endif
-#if !(  defined(UNITS_DAILY_PRECIP_POP)         \
-      ^ defined(UNITS_DAILY_PRECIP_MILLIMETERS) \
-      ^ defined(UNITS_DAILY_PRECIP_CENTIMETERS) \
-      ^ defined(UNITS_DAILY_PRECIP_INCHES))
-  #error Invalid configuration. Exactly one daily precipitation measurement must be selected.
+#if !(defined(UNITS_DAILY_PRECIP_POP) ^                                        \
+      defined(UNITS_DAILY_PRECIP_MILLIMETERS) ^                                \
+      defined(UNITS_DAILY_PRECIP_CENTIMETERS) ^                                \
+      defined(UNITS_DAILY_PRECIP_INCHES))
+#error Invalid configuration. Exactly one daily precipitation measurement must be selected.
 #endif
-#if !(  defined(USE_HTTP)                   \
-      ^ defined(USE_HTTPS_NO_CERT_VERIF)    \
-      ^ defined(USE_HTTPS_WITH_CERT_VERIF))
-  #error Invalid configuration. Exactly one HTTP mode must be selected.
+#if !(defined(USE_HTTP) ^ defined(USE_HTTPS_NO_CERT_VERIF) ^                   \
+      defined(USE_HTTPS_WITH_CERT_VERIF))
+#error Invalid configuration. Exactly one HTTP mode must be selected.
 #endif
-#if !(  defined(WIND_INDICATOR_ARROW)                         \
-      || (                                                    \
-          defined(WIND_INDICATOR_NUMBER)                      \
-        ^ defined(WIND_INDICATOR_CPN_CARDINAL)                \
-        ^ defined(WIND_INDICATOR_CPN_INTERCARDINAL)           \
-        ^ defined(WIND_INDICATOR_CPN_SECONDARY_INTERCARDINAL) \
-        ^ defined(WIND_INDICATOR_CPN_TERTIARY_INTERCARDINAL)  \
-      )                                                       \
-      ^ defined(WIND_INDICATOR_NONE))
-  #error Invalid configuration. Illegal selction of wind indicator(s).
+#if !(defined(WIND_INDICATOR_ARROW) ||                                         \
+      (defined(WIND_INDICATOR_NUMBER) ^ defined(WIND_INDICATOR_CPN_CARDINAL) ^ \
+       defined(WIND_INDICATOR_CPN_INTERCARDINAL) ^                             \
+       defined(WIND_INDICATOR_CPN_SECONDARY_INTERCARDINAL) ^                   \
+       defined(WIND_INDICATOR_CPN_TERTIARY_INTERCARDINAL)) ^                   \
+          defined(WIND_INDICATOR_NONE))
+#error Invalid configuration. Illegal selction of wind indicator(s).
 #endif
-#if defined(WIND_INDICATOR_ARROW)                   \
- && !(  defined(WIND_ICONS_CARDINAL)                \
-      ^ defined(WIND_ICONS_INTERCARDINAL)           \
-      ^ defined(WIND_ICONS_SECONDARY_INTERCARDINAL) \
-      ^ defined(WIND_ICONS_TERTIARY_INTERCARDINAL)  \
-      ^ defined(WIND_ICONS_360))
-  #error Invalid configuration. Exactly one wind direction icon precision level must be selected.
+#if defined(WIND_INDICATOR_ARROW) &&                                           \
+    !(defined(WIND_ICONS_CARDINAL) ^ defined(WIND_ICONS_INTERCARDINAL) ^       \
+      defined(WIND_ICONS_SECONDARY_INTERCARDINAL) ^                            \
+      defined(WIND_ICONS_TERTIARY_INTERCARDINAL) ^ defined(WIND_ICONS_360))
+#error Invalid configuration. Exactly one wind direction icon precision level must be selected.
 #endif
 #if !(defined(FONT_HEADER))
-  #error Invalid configuration. Font not selected.
+#error Invalid configuration. Font not selected.
 #endif
 #if !(defined(DISPLAY_DAILY_PRECIP))
-  #error Invalid configuration. DISPLAY_DAILY_PRECIP not defined.
+#error Invalid configuration. DISPLAY_DAILY_PRECIP not defined.
 #endif
 #if !(defined(DISPLAY_HOURLY_ICONS))
-  #error Invalid configuration. DISPLAY_HOURLY_ICONS not defined.
+#error Invalid configuration. DISPLAY_HOURLY_ICONS not defined.
 #endif
 #if !(defined(DISPLAY_ALERTS))
-  #error Invalid configuration. DISPLAY_ALERTS not defined.
+#error Invalid configuration. DISPLAY_ALERTS not defined.
 #endif
 #if !(defined(BATTERY_MONITORING))
-  #error Invalid configuration. BATTERY_MONITORING not defined.
+#error Invalid configuration. BATTERY_MONITORING not defined.
 #endif
 #if !(defined(DEBUG_LEVEL))
-  #error Invalid configuration. DEBUG_LEVEL not defined.
+#error Invalid configuration. DEBUG_LEVEL not defined.
 #endif
 
 #endif
