@@ -41,11 +41,6 @@ const uint8_t PIN_EPD_MISO =
     19; // 19 Master-In Slave-Out not used, as no data from display
 const uint8_t PIN_EPD_MOSI = 23;
 const uint8_t PIN_EPD_PWR = 26; // Irrelevant if directly connected to 3.3V
-// I2C Pins used for BME280
-// const uint8_t PIN_BME_SDA = 17;
-// const uint8_t PIN_BME_SCL = 16;
-// const uint8_t PIN_BME_PWR =  4;   // Irrelevant if directly connected to 3.3V
-// const uint8_t BME_ADDRESS = 0x76; // If sensor does not work, try 0x77
 
 // WIFI
 const unsigned long WIFI_TIMEOUT = 10000; // ms, WiFi connection timeout.
@@ -154,6 +149,12 @@ const unsigned long VERY_LOW_BATTERY_SLEEP_INTERVAL = 120; // (minutes)
 // Battery voltage calculations are based on a typical 3.7v LiPo.
 const uint32_t MAX_BATTERY_VOLTAGE = 4200; // (millivolts)
 const uint32_t MIN_BATTERY_VOLTAGE = 3000; // (millivolts)
+
+// MLB
+// Team ID for MLB schedule API. Find your team's ID at:
+// https://statsapi.mlb.com/api/v1/teams?sportId=1
+const int MLB_TEAM_ID = 136;
+const int MLB_SEASON_YEAR = 2026;
 
 // See config.h for the below options
 // E-PAPER PANEL

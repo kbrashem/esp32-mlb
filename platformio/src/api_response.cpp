@@ -87,20 +87,6 @@ DeserializationError deserializeOneCall(WiFiClient &json,
       current_weather["description"].as<const char *>();
   r.current.weather.icon = current_weather["icon"].as<const char *>();
 
-  // minutely forecast is currently unused
-  // i = 0;
-  // for (JsonObject minutely : doc["minutely"].as<JsonArray>())
-  // {
-  //   r.minutely[i].dt            = minutely["dt"]           .as<int64_t>();
-  //   r.minutely[i].precipitation = minutely["precipitation"].as<float>();
-
-  //   if (i == OWM_NUM_MINUTELY - 1)
-  //   {
-  //     break;
-  //   }
-  //   ++i;
-  // }
-
   i = 0;
   for (JsonObject hourly : doc["hourly"].as<JsonArray>()) {
     r.hourly[i].dt = hourly["dt"].as<int64_t>();
@@ -180,11 +166,9 @@ DeserializationError deserializeOneCall(WiFiClient &json,
   i = 0;
   for (JsonObject alerts : doc["alerts"].as<JsonArray>()) {
     owm_alerts_t new_alert = {};
-    // new_alert.sender_name = alerts["sender_name"].as<const char *>();
     new_alert.event = alerts["event"].as<const char *>();
     new_alert.start = alerts["start"].as<int64_t>();
     new_alert.end = alerts["end"].as<int64_t>();
-    // new_alert.description = alerts["description"].as<const char *>();
     new_alert.tags = alerts["tags"][0].as<const char *>();
     r.alerts.push_back(new_alert);
 
@@ -197,48 +181,3 @@ DeserializationError deserializeOneCall(WiFiClient &json,
 
   return error;
 } // end deserializeOneCall
-
-DeserializationError deserializeAirQuality(WiFiClient &json,
-                                           owm_resp_air_pollution_t &r) {
-  int i = 0;
-
-  JsonDocument doc;
-
-  DeserializationError error = deserializeJson(doc, json);
-#if DEBUG_LEVEL >= 1
-  Serial.println("[debug] doc.overflowed() : " + String(doc.overflowed()));
-#endif
-#if DEBUG_LEVEL >= 2
-  serializeJsonPretty(doc, Serial);
-#endif
-  if (error) {
-    return error;
-  }
-
-  r.coord.lat = doc["coord"]["lat"].as<float>();
-  r.coord.lon = doc["coord"]["lon"].as<float>();
-
-  for (JsonObject list : doc["list"].as<JsonArray>()) {
-
-    r.main_aqi[i] = list["main"]["aqi"].as<int>();
-
-    JsonObject list_components = list["components"];
-    r.components.co[i] = list_components["co"].as<float>();
-    r.components.no[i] = list_components["no"].as<float>();
-    r.components.no2[i] = list_components["no2"].as<float>();
-    r.components.o3[i] = list_components["o3"].as<float>();
-    r.components.so2[i] = list_components["so2"].as<float>();
-    r.components.pm2_5[i] = list_components["pm2_5"].as<float>();
-    r.components.pm10[i] = list_components["pm10"].as<float>();
-    r.components.nh3[i] = list_components["nh3"].as<float>();
-
-    r.dt[i] = list["dt"].as<int64_t>();
-
-    if (i == OWM_NUM_AIR_POLLUTION - 1) {
-      break;
-    }
-    ++i;
-  }
-
-  return error;
-} // end deserializeAirQuality

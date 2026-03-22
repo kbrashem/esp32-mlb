@@ -25,16 +25,11 @@
 #include <cstdint>
 #include <vector>
 
-#define OWM_NUM_MINUTELY 1 // 61
 #define OWM_NUM_HOURLY 48  // 48
 #define OWM_NUM_DAILY 8    // 8
 #define OWM_NUM_ALERTS                                                         \
   8 // OpenWeatherMaps does not specify a limit, but if you need more alerts you
     // are probably doomed.
-#define OWM_NUM_AIR_POLLUTION                                                  \
-  24 // Depending on AQI scale, hourly concentrations will need to be averaged
-     // over a period of 1h to 24h
-
 typedef struct owm_weather {
   int id;             // Weather condition id
   String main;        // Group of weather parameters (Rain, Snow, Extreme etc.)
@@ -97,14 +92,6 @@ typedef struct owm_current {
   float snow_1h;    // (where available) Snow volume for last hour, mm
   owm_weather_t weather;
 } owm_current_t;
-
-/*
- * Minute forecast weather data API response
- */
-typedef struct owm_minutely {
-  int64_t dt;          // Time of the forecasted data, unix, UTC
-  float precipitation; // Precipitation volume, mm
-} owm_minutely_t;
 
 /*
  * Hourly forecast weather data API response
@@ -180,12 +167,10 @@ typedef struct owm_daily {
  * National weather alerts data from major national weather warning systems
  */
 typedef struct owm_alerts {
-  String sender_name; // Name of the alert source.
-  String event;       // Alert event name
-  int64_t start;      // Date and time of the start of the alert, Unix, UTC
-  int64_t end;        // Date and time of the end of the alert, Unix, UTC
-  String description; // Description of the alert
-  String tags;        // Type of severe weather
+  String event;  // Alert event name
+  int64_t start; // Date and time of the start of the alert, Unix, UTC
+  int64_t end;   // Date and time of the end of the alert, Unix, UTC
+  String tags;   // Type of severe weather
 } owm_alerts_t;
 
 /*
@@ -199,53 +184,12 @@ typedef struct owm_resp_onecall {
   String timezone;     // Timezone name for the requested location
   int timezone_offset; // Shift in seconds from UTC
   owm_current_t current;
-  // owm_minutely_t  minutely[OWM_NUM_MINUTELY];
-
   owm_hourly_t hourly[OWM_NUM_HOURLY];
   owm_daily_t daily[OWM_NUM_DAILY];
   std::vector<owm_alerts_t> alerts;
 } owm_resp_onecall_t;
 
-/*
- * Coordinates from the specified location (latitude, longitude)
- */
-typedef struct owm_coord {
-  float lat;
-  float lon;
-} owm_coord_t;
-
-typedef struct owm_components {
-  float co[OWM_NUM_AIR_POLLUTION];  // Сoncentration of CO (Carbon monoxide),
-                                    // μg/m^3
-  float no[OWM_NUM_AIR_POLLUTION];  // Сoncentration of NO (Nitrogen monoxide),
-                                    // μg/m^3
-  float no2[OWM_NUM_AIR_POLLUTION]; // Сoncentration of NO2 (Nitrogen dioxide),
-                                    // μg/m^3
-  float o3[OWM_NUM_AIR_POLLUTION];  // Сoncentration of O3 (Ozone), μg/m^3
-  float so2[OWM_NUM_AIR_POLLUTION]; // Сoncentration of SO2 (Sulphur dioxide),
-                                    // μg/m^3
-  float pm2_5[OWM_NUM_AIR_POLLUTION]; // Сoncentration of PM2.5 (Fine particles
-                                      // matter), μg/m^3
-  float pm10[OWM_NUM_AIR_POLLUTION];  // Сoncentration of PM10 (Coarse
-                                      // particulate matter), μg/m^3
-  float nh3[OWM_NUM_AIR_POLLUTION];   // Сoncentration of NH3 (Ammonia), μg/m^3
-} owm_components_t;
-
-/*
- * Response from OpenWeatherMap's Air Pollution API
- */
-typedef struct owm_resp_air_pollution {
-  owm_coord_t coord;
-  int main_aqi[OWM_NUM_AIR_POLLUTION]; // Air Quality Index. Possible values: 1,
-                                       // 2, 3, 4, 5. Where 1 = Good, 2 = Fair,
-                                       // 3 = Moderate, 4 = Poor, 5 = Very Poor.
-  owm_components_t components;
-  int64_t dt[OWM_NUM_AIR_POLLUTION]; // Date and time, Unix, UTC;
-} owm_resp_air_pollution_t;
-
 DeserializationError deserializeOneCall(WiFiClient &json,
                                         owm_resp_onecall_t &r);
-DeserializationError deserializeAirQuality(WiFiClient &json,
-                                           owm_resp_air_pollution_t &r);
 
 #endif

@@ -34,13 +34,12 @@ bool waitForSNTPSync(tm *timeInfo);
 bool printLocalTime(tm *timeInfo);
 #ifdef USE_HTTP
 int getOWMonecall(WiFiClient &client, owm_resp_onecall_t &r);
-int getOWMairpollution(WiFiClient &client, owm_resp_air_pollution_t &r);
+int getMlbStandings(WiFiClient &client, mlb_standings_resp_t &r);
+int getMlbNextGame(WiFiClient &client, mlb_next_game_t &r);
 #else
 int getOWMonecall(WiFiClientSecure &client, owm_resp_onecall_t &r);
-int getOWMairpollution(WiFiClientSecure &client, owm_resp_air_pollution_t &r);
-#endif
-
 int getMlbStandings(WiFiClientSecure &client, mlb_standings_resp_t &r);
 int getMlbNextGame(WiFiClientSecure &client, mlb_next_game_t &r);
+#endif
 
 #endif

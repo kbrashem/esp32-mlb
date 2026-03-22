@@ -29,7 +29,6 @@
 #define DISP_WIDTH 800
 #define DISP_HEIGHT 480
 #include <GxEPD2_BW.h>
-/*extern GxEPD2_BW<GxEPD2_750_T7, GxEPD2_750_T7::HEIGHT> display;*/
 extern GxEPD2_BW<GxEPD2_750_GDEY075T7, GxEPD2_750_GDEY075T7::HEIGHT> display;
 #endif
 #ifdef DISP_3C_B
@@ -64,16 +63,10 @@ void drawMultiLnString(int16_t x, int16_t y, const String &text,
                        uint16_t color = GxEPD_BLACK);
 void initDisplay();
 void powerOffDisplay();
-void drawCurrentConditions(const owm_current_t &current,
-                           const owm_daily_t &today,
-                           const owm_resp_air_pollution_t &owm_air_pollution,
-                           float inTemp, float inHumidity);
 void drawForecast(const owm_daily_t *daily, tm timeInfo);
 void drawAlerts(std::vector<owm_alerts_t> &alerts, const String &city,
                 const String &date);
 void drawLocationDate(const String &city, const String &date);
-void drawOutlookGraph(const owm_hourly_t *hourly, const owm_daily_t *daily,
-                      tm timeInfo);
 void drawStatusBar(const String &statusStr, const String &refreshTimeStr,
                    int rssi, uint32_t batVoltage);
 void drawError(const uint8_t *bitmap_196x196, const String &errMsgLn1,

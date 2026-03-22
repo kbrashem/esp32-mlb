@@ -15,12 +15,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-// #include <Adafruit_BME280.h>
-// #include <Adafruit_Sensor.h>
 #include <Arduino.h>
 #include <Preferences.h>
 #include <WiFi.h>
-#include <Wire.h>
 #include <time.h>
 
 #include "_locale.h"
@@ -31,7 +28,7 @@
 #include "icons/icons_196x196.h"
 #include "mlb_response.h"
 #include "renderer.h"
-#if defined(USE_HTTPS_WITH_CERT_VERIF) || defined(USE_HTTPS_WITH_CERT_VERIF)
+#if defined(USE_HTTPS) || defined(USE_HTTPS_WITH_CERT_VERIF)
 #include <WiFiClientSecure.h>
 #endif
 #ifdef USE_HTTPS_WITH_CERT_VERIF
@@ -40,7 +37,6 @@
 
 // too large to allocate locally on stack
 static owm_resp_onecall_t owm_onecall;
-static owm_resp_air_pollution_t owm_air_pollution;
 static mlb_standings_resp_t mlb_standings;
 static mlb_next_game_t mlb_next_game;
 
@@ -243,24 +239,9 @@ void setup() {
     powerOffDisplay();
     beginDeepSleep(startTime, &timeInfo);
   }
-  // rxStatus = getOWMairpollution(client, owm_air_pollution);
-  // if (rxStatus != HTTP_CODE_OK) {
-  //   killWiFi();
-  //   statusStr = "Air Pollution API";
-  //   tmpStr = String(rxStatus, DEC) + ": " + getHttpResponsePhrase(rxStatus);
-  //   initDisplay();
-  //   do {
-  //     drawError(wi_cloud_down_196x196, statusStr, tmpStr);
-  //   } while (display.nextPage());
-  //   powerOffDisplay();
-  //   beginDeepSleep(startTime, &timeInfo);
-  // }
   int mlbStatus = getMlbStandings(client, mlb_standings);
   int mlbNextGameStatus = getMlbNextGame(client, mlb_next_game);
   killWiFi(); // WiFi no longer needed
-
-  float inTemp = NAN;
-  float inHumidity = NAN;
 
   String refreshTimeStr;
   getRefreshTimeStr(refreshTimeStr, timeConfigured, &timeInfo);
@@ -271,9 +252,6 @@ void setup() {
   // RENDER FULL REFRESH
   initDisplay();
   do {
-    /*drawCurrentConditions(owm_onecall.current, owm_onecall.daily[0],*/
-    /*                      owm_air_pollution, inTemp, inHumidity);*/
-    /*drawOutlookGraph(owm_onecall.hourly, owm_onecall.daily, timeInfo);*/
     drawForecast(owm_onecall.daily, timeInfo);
     drawLocationDate(CITY_STRING, dateStr);
 #if DISPLAY_ALERTS

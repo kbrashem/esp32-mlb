@@ -275,10 +275,6 @@ extern const uint8_t PIN_EPD_SCK;
 extern const uint8_t PIN_EPD_MISO;
 extern const uint8_t PIN_EPD_MOSI;
 extern const uint8_t PIN_EPD_PWR;
-extern const uint8_t PIN_BME_SDA;
-extern const uint8_t PIN_BME_SCL;
-extern const uint8_t PIN_BME_PWR;
-extern const uint8_t BME_ADDRESS;
 extern const char *WIFI_SSID;
 extern const char *WIFI_PASSWORD;
 extern const unsigned long WIFI_TIMEOUT;
@@ -309,6 +305,8 @@ extern const unsigned long LOW_BATTERY_SLEEP_INTERVAL;
 extern const unsigned long VERY_LOW_BATTERY_SLEEP_INTERVAL;
 extern const uint32_t MAX_BATTERY_VOLTAGE;
 extern const uint32_t MIN_BATTERY_VOLTAGE;
+extern const int MLB_TEAM_ID;
+extern const int MLB_SEASON_YEAR;
 
 // CONFIG VALIDATION - DO NOT MODIFY
 #if !(defined(DISP_BW_V2) ^ defined(DISP_3C_B) ^ defined(DISP_7C_F) ^          \

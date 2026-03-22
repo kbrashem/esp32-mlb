@@ -189,74 +189,6 @@ int getOWMonecall(WiFiClientSecure &client, owm_resp_onecall_t &r)
   return httpResponse;
 } // getOWMonecall
 
-/* Perform an HTTP GET request to OpenWeatherMap's "Air Pollution" API
- * If data is received, it will be parsed and stored in the global variable
- * owm_air_pollution.
- *
- * Returns the HTTP Status Code.
- */
-#ifdef USE_HTTP
-int getOWMairpollution(WiFiClient &client, owm_resp_air_pollution_t &r)
-#else
-int getOWMairpollution(WiFiClientSecure &client, owm_resp_air_pollution_t &r)
-#endif
-{
-  int attempts = 0;
-  bool rxSuccess = false;
-  DeserializationError jsonErr = {};
-
-  // set start and end to appropriate values so that the last 24 hours of air
-  // pollution history is returned. Unix, UTC.
-  time_t now;
-  int64_t end = time(&now);
-  // minus 1 is important here, otherwise we could get an extra hour of history
-  int64_t start = end - ((3600 * OWM_NUM_AIR_POLLUTION) - 1);
-  char endStr[22];
-  char startStr[22];
-  sprintf(endStr, "%lld", end);
-  sprintf(startStr, "%lld", start);
-  String uri = "/data/2.5/air_pollution/history?lat=" + LAT + "&lon=" + LON +
-               "&start=" + startStr + "&end=" + endStr + "&appid=" + OWM_APIKEY;
-  // This string is printed to terminal to help with debugging. The API key is
-  // censored to reduce the risk of users exposing their key.
-  String sanitizedUri = OWM_ENDPOINT +
-                        "/data/2.5/air_pollution/history?lat=" + LAT +
-                        "&lon=" + LON + "&start=" + startStr +
-                        "&end=" + endStr + "&appid={API key}";
-
-  Serial.print(TXT_ATTEMPTING_HTTP_REQ);
-  Serial.println(": " + sanitizedUri);
-  int httpResponse = 0;
-  while (!rxSuccess && attempts < 3) {
-    wl_status_t connection_status = WiFi.status();
-    if (connection_status != WL_CONNECTED) {
-      // -512 offset distinguishes these errors from httpClient errors
-      return -512 - static_cast<int>(connection_status);
-    }
-
-    HTTPClient http;
-    http.setConnectTimeout(HTTP_CLIENT_TCP_TIMEOUT); // default 5000ms
-    http.setTimeout(HTTP_CLIENT_TCP_TIMEOUT);        // default 5000ms
-    http.begin(client, OWM_ENDPOINT, OWM_PORT, uri);
-    httpResponse = http.GET();
-    if (httpResponse == HTTP_CODE_OK) {
-      jsonErr = deserializeAirQuality(http.getStream(), r);
-      if (jsonErr) {
-        // -256 offset to distinguishes these errors from httpClient errors
-        httpResponse = -256 - static_cast<int>(jsonErr.code());
-      }
-      rxSuccess = !jsonErr;
-    }
-    client.stop();
-    http.end();
-    Serial.println("  " + String(httpResponse, DEC) + " " +
-                   getHttpResponsePhrase(httpResponse));
-    ++attempts;
-  }
-
-  return httpResponse;
-} // getOWMairpollution
-
 /* Prints debug information about heap usage.
  */
 void printHeapUsage() {
@@ -280,9 +212,10 @@ int getMlbStandings(WiFiClientSecure &client, mlb_standings_resp_t &r)
   int attempts = 0;
   bool rxSuccess = false;
   DeserializationError jsonErr = {};
-  String uri = "/api/v1/"
-               "standings?leagueId=103&season=2026&standingsTypes="
-               "regularSeason&hydrate=division,conference,sport,league";
+  String uri = "/api/v1/standings?leagueId=103&season=" +
+               String(MLB_SEASON_YEAR) +
+               "&standingsTypes=regularSeason"
+               "&hydrate=division,conference,sport,league";
   String sanitizedUri = "https://statsapi.mlb.com" + uri;
 
   Serial.print(TXT_ATTEMPTING_HTTP_REQ);
@@ -328,8 +261,7 @@ int getMlbNextGame(WiFiClientSecure &client, mlb_next_game_t &r)
   int attempts = 0;
   bool rxSuccess = false;
   DeserializationError jsonErr = {};
-  String uri = "/api/v1/"
-               "schedule?teamId=136&sportId=1";
+  String uri = "/api/v1/schedule?teamId=" + String(MLB_TEAM_ID) + "&sportId=1";
   String sanitizedUri = "https://statsapi.mlb.com" + uri;
 
   Serial.print(TXT_ATTEMPTING_HTTP_REQ);
