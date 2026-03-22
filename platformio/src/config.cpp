@@ -18,6 +18,9 @@
 #include "config.h"
 #include <Arduino.h>
 
+// Secret credentials are in credentials.cpp (git-ignored).
+// See credentials.cpp.template.
+
 // PINS
 // The configuration below is intended for use with the project's official
 // wiring diagrams using the FireBeetle 2 ESP32-E microcontroller board.

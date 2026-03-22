@@ -281,7 +281,7 @@ int getMlbStandings(WiFiClientSecure &client, mlb_standings_resp_t &r)
   bool rxSuccess = false;
   DeserializationError jsonErr = {};
   String uri = "/api/v1/"
-               "standings?leagueId=103&season=2025&standingsTypes="
+               "standings?leagueId=103&season=2026&standingsTypes="
                "regularSeason&hydrate=division,conference,sport,league";
   String sanitizedUri = "https://statsapi.mlb.com" + uri;
 
