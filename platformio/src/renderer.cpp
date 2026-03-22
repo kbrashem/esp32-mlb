@@ -535,6 +535,10 @@ void powerOffDisplay() {
   } // end drawError
 
   void drawMlbStandings(const mlb_standings_resp_t &mlb_standings) {
+    if (mlb_standings.divisions.empty()) {
+      return;
+    }
+
     String dataStr;
 
     const int xPos0 = 5;
@@ -542,38 +546,35 @@ void powerOffDisplay() {
     const int xCol2 = xPos0 + 325;
     const int xCol3 = xPos0 + 380;
 
-    String divs[3] = {"AL East", "AL Central", "AL West"};
+    int numDivs = std::min(static_cast<int>(mlb_standings.divisions.size()), 3);
 
-    // Loop through strings
-    for (int d = 2; d >= 0; d--) {
+    for (int d = numDivs - 1; d >= 0; d--) {
 
       const int yPos1 = 20 + d * 160;
 
       display.setFont(&FONT_14pt8b);
-      drawString(xPos0 + 40, yPos1, divs[d], LEFT);
+      String divName = mlb_standings.divisions[d].division_name;
+      divName.replace("American League", "AL");
+      divName.replace("National League", "NL");
+      drawString(xPos0 + 40, yPos1, divName, LEFT);
       drawString(xCol1, yPos1, "W", RIGHT);
       drawString(xCol2, yPos1, "L", RIGHT);
       drawString(xCol3, yPos1, "GB", RIGHT);
-      for (int i = 0; i < 5; ++i) {
-        int y = yPos1 + 26 + (i * 26);
-        display.setFont(&FONT_14pt8b);
-        drawString(xPos0, y, mlb_standings.divisions[d].teams[i].team_name,
-                   LEFT);
-        display.setFont(&FONT_12pt8b);
-        dataStr =
-            String(static_cast<int>(mlb_standings.divisions[d].teams[i].wins));
-        drawString(xCol1, y, dataStr, RIGHT);
-        dataStr = String(
-            static_cast<int>(mlb_standings.divisions[d].teams[i].losses));
-        drawString(xCol2, y, dataStr, RIGHT);
 
-        float gb = mlb_standings.divisions[d].teams[i].games_back;
-        if (gb - (int)gb == 0) {
-          dataStr = String(static_cast<int>(gb));
-        } else {
-          dataStr = String(static_cast<int>(gb)) + ".5";
-        }
-        drawString(xCol3, y, dataStr, RIGHT);
+      int numTeams = std::min(
+          static_cast<int>(mlb_standings.divisions[d].teams.size()),
+          MLB_TEAMS_PER_DIV);
+      for (int i = 0; i < numTeams; ++i) {
+        int y = yPos1 + 26 + (i * 26);
+        const auto &team = mlb_standings.divisions[d].teams[i];
+        display.setFont(&FONT_14pt8b);
+        drawString(xPos0, y, team.team_name, LEFT);
+        display.setFont(&FONT_12pt8b);
+        dataStr = String(team.wins);
+        drawString(xCol1, y, dataStr, RIGHT);
+        dataStr = String(team.losses);
+        drawString(xCol2, y, dataStr, RIGHT);
+        drawString(xCol3, y, team.games_back, RIGHT);
       }
     }
   } // end drawMLBStandings
@@ -589,7 +590,11 @@ void powerOffDisplay() {
     drawString(xPos0, yPos0, mlb_next_game.game_datetime_local, LEFT);
     yPos0 += 24;
     drawString(xPos0, yPos0, mlb_next_game.away_name, LEFT);
+    yPos0 += 20;
+    drawString(xPos0 + 16, yPos0, mlb_next_game.away_pitcher, LEFT);
     yPos0 += 24;
     drawString(xPos0, yPos0, "@" + mlb_next_game.home_name, LEFT);
+    yPos0 += 20;
+    drawString(xPos0 + 16, yPos0, mlb_next_game.home_pitcher, LEFT);
 
   } // end drawMLBNextGame

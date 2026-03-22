@@ -115,7 +115,7 @@ const unsigned long NTP_TIMEOUT = 20000; // ms
 // minutes past the hour. (range: [2-1440])
 // Note: The OpenWeatherMap model is updated every 10 minutes, so updating more
 //       frequently than that is unnessesary.
-const int SLEEP_DURATION = 30; // minutes
+const int SLEEP_DURATION = 5; // minutes
 // Bed Time Power Savings.
 // If BED_TIME == WAKE_TIME, then this battery saving feature will be disabled.
 // (range: [0-23])
@@ -154,6 +154,9 @@ const uint32_t MIN_BATTERY_VOLTAGE = 3000; // (millivolts)
 // Team ID for MLB schedule API. Find your team's ID at:
 // https://statsapi.mlb.com/api/v1/teams?sportId=1
 const int MLB_TEAM_ID = 136;
+// League ID: 103 = American League, 104 = National League
+// Toggled between AL and NL each wake cycle via NVS
+int MLB_LEAGUE_ID = 103;
 const int MLB_SEASON_YEAR = 2026;
 
 // See config.h for the below options

@@ -306,6 +306,7 @@ extern const unsigned long VERY_LOW_BATTERY_SLEEP_INTERVAL;
 extern const uint32_t MAX_BATTERY_VOLTAGE;
 extern const uint32_t MIN_BATTERY_VOLTAGE;
 extern const int MLB_TEAM_ID;
+extern int MLB_LEAGUE_ID;
 extern const int MLB_SEASON_YEAR;
 
 // CONFIG VALIDATION - DO NOT MODIFY

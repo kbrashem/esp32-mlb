@@ -97,6 +97,8 @@ bool printLocalTime(tm *timeInfo) {
   int attempts = 0;
   while (!getLocalTime(timeInfo) && attempts++ < 3) {
     Serial.println(TXT_FAILED_TO_GET_TIME);
+  }
+  if (attempts > 3) {
     return false;
   }
   Serial.println(timeInfo, "%A, %B %d, %Y %H:%M:%S");
@@ -212,8 +214,8 @@ int getMlbStandings(WiFiClientSecure &client, mlb_standings_resp_t &r)
   int attempts = 0;
   bool rxSuccess = false;
   DeserializationError jsonErr = {};
-  String uri = "/api/v1/standings?leagueId=103&season=" +
-               String(MLB_SEASON_YEAR) +
+  String uri = "/api/v1/standings?leagueId=" + String(MLB_LEAGUE_ID) +
+               "&season=" + String(MLB_SEASON_YEAR) +
                "&standingsTypes=regularSeason"
                "&hydrate=division,conference,sport,league";
   String sanitizedUri = "https://statsapi.mlb.com" + uri;
@@ -261,7 +263,8 @@ int getMlbNextGame(WiFiClientSecure &client, mlb_next_game_t &r)
   int attempts = 0;
   bool rxSuccess = false;
   DeserializationError jsonErr = {};
-  String uri = "/api/v1/schedule?teamId=" + String(MLB_TEAM_ID) + "&sportId=1";
+  String uri = "/api/v1/schedule?teamId=" + String(MLB_TEAM_ID) +
+               "&sportId=1&hydrate=probablePitcher";
   String sanitizedUri = "https://statsapi.mlb.com" + uri;
 
   Serial.print(TXT_ATTEMPTING_HTTP_REQ);

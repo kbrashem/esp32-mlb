@@ -6,9 +6,27 @@
 
 DeserializationError deserializeMlbStandings(WiFiClient &json,
                                              mlb_standings_resp_t &r) {
+  JsonDocument filter;
+  for (int d = 0; d < 3; ++d) {
+    filter["records"][d]["division"]["name"] = true;
+    for (int t = 0; t < MLB_TEAMS_PER_DIV; ++t) {
+      auto tr = filter["records"][d]["teamRecords"][t];
+      tr["team"]["name"] = true;
+      tr["wins"] = true;
+      tr["losses"] = true;
+      tr["winningPercentage"] = true;
+      tr["gamesBack"] = true;
+      tr["streak"]["streakCode"] = true;
+      tr["records"]["splitRecords"] = true;
+      tr["wildCardRank"] = true;
+      tr["wildCardGamesBack"] = true;
+    }
+  }
+
   JsonDocument doc;
 
-  DeserializationError error = deserializeJson(doc, json);
+  DeserializationError error =
+      deserializeJson(doc, json, DeserializationOption::Filter(filter));
 #if DEBUG_LEVEL >= 1
   Serial.println("[debug] doc.overflowed() : " + String(doc.overflowed()));
 #endif
@@ -30,22 +48,25 @@ DeserializationError deserializeMlbStandings(WiFiClient &json,
       team_standing.wins = team["wins"].as<int>();
       team_standing.losses = team["losses"].as<int>();
       team_standing.win_pct = team["winningPercentage"].as<float>();
-      team_standing.games_back = team["gamesBack"].as<float>();
+      team_standing.games_back = team["gamesBack"].as<String>();
       team_standing.streak = team["streak"]["streakCode"].as<const char *>();
-      team_standing.last_10_wins =
-          team["records"]["splitRecords"][8]["wins"].as<int>();
-      team_standing.last_10_losses =
-          team["records"]["splitRecords"][8]["losses"].as<int>();
-      team_standing.home_wins =
-          team["records"]["splitRecords"][0]["wins"].as<int>();
-      team_standing.home_losses =
-          team["records"]["splitRecords"][0]["losses"].as<int>();
-      team_standing.away_wins =
-          team["records"]["splitRecords"][1]["wins"].as<int>();
-      team_standing.away_losses =
-          team["records"]["splitRecords"][1]["losses"].as<int>();
+      // Search split records by type to avoid fragile index assumptions
+      for (JsonObject sr : team["records"]["splitRecords"].as<JsonArray>()) {
+        const char *type = sr["type"].as<const char *>();
+        if (!type) continue;
+        if (strcmp(type, "lastTen") == 0) {
+          team_standing.last_10_wins = sr["wins"].as<int>();
+          team_standing.last_10_losses = sr["losses"].as<int>();
+        } else if (strcmp(type, "home") == 0) {
+          team_standing.home_wins = sr["wins"].as<int>();
+          team_standing.home_losses = sr["losses"].as<int>();
+        } else if (strcmp(type, "away") == 0) {
+          team_standing.away_wins = sr["wins"].as<int>();
+          team_standing.away_losses = sr["losses"].as<int>();
+        }
+      }
       team_standing.wc_rank = team["wildCardRank"].as<int>();
-      team_standing.wc_games_back = team["wildCardGamesBack"].as<int>();
+      team_standing.wc_games_back = team["wildCardGamesBack"].as<String>();
 
       division_standing.teams.push_back(team_standing);
     }
@@ -58,9 +79,20 @@ DeserializationError deserializeMlbStandings(WiFiClient &json,
 
 DeserializationError deserializeMlbNextGame(WiFiClient &json,
                                             mlb_next_game_t &g) {
+  JsonDocument filter;
+  auto game = filter["dates"][0]["games"][0];
+  game["gamePk"] = true;
+  game["teams"]["home"]["team"]["name"] = true;
+  game["teams"]["home"]["probablePitcher"]["fullName"] = true;
+  game["teams"]["away"]["team"]["name"] = true;
+  game["teams"]["away"]["probablePitcher"]["fullName"] = true;
+  game["gameDate"] = true;
+  game["officialDate"] = true;
+
   JsonDocument doc;
 
-  DeserializationError error = deserializeJson(doc, json);
+  DeserializationError error =
+      deserializeJson(doc, json, DeserializationOption::Filter(filter));
 #if DEBUG_LEVEL >= 1
   Serial.println("[debug] doc.overflowed() : " + String(doc.overflowed()));
 #endif
@@ -77,11 +109,21 @@ DeserializationError deserializeMlbNextGame(WiFiClient &json,
   }
 
   g.is_game_today = true;
-  g.game_id = doc["dates"][0]["games"][0]["gamePk"].as<const char *>();
+  g.game_id = String(doc["dates"][0]["games"][0]["gamePk"].as<int>());
   g.home_name = doc["dates"][0]["games"][0]["teams"]["home"]["team"]["name"]
                     .as<const char *>();
   g.away_name = doc["dates"][0]["games"][0]["teams"]["away"]["team"]["name"]
                     .as<const char *>();
+
+  const char *homePitcher = doc["dates"][0]["games"][0]["teams"]["home"]
+                                ["probablePitcher"]["fullName"]
+                                    .as<const char *>();
+  g.home_pitcher = homePitcher ? homePitcher : "TBD";
+
+  const char *awayPitcher = doc["dates"][0]["games"][0]["teams"]["away"]
+                                ["probablePitcher"]["fullName"]
+                                    .as<const char *>();
+  g.away_pitcher = awayPitcher ? awayPitcher : "TBD";
 
   // Store the original ISO datetime string
   const char *rawDatetime =
@@ -105,33 +147,31 @@ DeserializationError deserializeMlbNextGame(WiFiClient &json,
     timeinfo.tm_min = minute;       // minutes after the hour (0-59)
     timeinfo.tm_sec = second;       // seconds after the minute (0-59)
 
-    // Convert UTC time to time_t
-    time_t utcTime = mktime(&timeinfo);
-
-    // Adjust for timezone difference between GMT and local time
-    // mktime() assumes the tm struct is in local time, so we need to correct
-    // for the timezone difference
-    time_t gmtOffset = 0;
-    {
-      struct tm tmGMT = {};
-      struct tm tmLocal = {};
-      time_t now = time(NULL);
-      gmtime_r(&now, &tmGMT);
-      localtime_r(&now, &tmLocal);
-
-      // Calculate offset from struct tm differences
-      time_t gmtNow = mktime(&tmGMT);
-      time_t localNow = mktime(&tmLocal);
-      gmtOffset = localNow - gmtNow;
+    // Convert UTC tm to time_t.
+    // mktime() interprets its argument as local time, so we temporarily
+    // switch to UTC, call mktime, then restore the original timezone.
+    char *origTz = getenv("TZ");
+    String savedTz;
+    if (origTz) {
+      savedTz = origTz;
     }
+    setenv("TZ", "UTC0", 1);
+    tzset();
+    time_t utcTime = mktime(&timeinfo);
+    if (origTz) {
+      setenv("TZ", savedTz.c_str(), 1);
+    } else {
+      unsetenv("TZ");
+    }
+    tzset();
 
-    // Apply the timezone correction for the correct local time
-    time_t localTime = utcTime + gmtOffset;
+    // Convert UTC time_t to local time using the system timezone
+    struct tm localTimeinfo = {};
+    localtime_r(&utcTime, &localTimeinfo);
 
-    // Convert to readable string
-    struct tm *localTimeinfo = localtime(&localTime);
     char timeBuffer[32] = {};
-    _strftime(timeBuffer, sizeof(timeBuffer), "%a, %b %d %H:%M", localTimeinfo);
+    _strftime(timeBuffer, sizeof(timeBuffer), "%a, %b %d %H:%M",
+              &localTimeinfo);
 
     // Store the formatted local time
     g.game_datetime_local = timeBuffer;

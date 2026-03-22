@@ -124,6 +124,12 @@ void setup() {
   // Open namespace for read/write to non-volatile storage
   prefs.begin(NVS_NAMESPACE, false);
 
+  // Toggle MLB league between AL (103) and NL (104) each wake cycle
+  bool showNL = prefs.getBool("mlbShowNL", false);
+  MLB_LEAGUE_ID = showNL ? 104 : 103;
+  prefs.putBool("mlbShowNL", !showNL);
+  Serial.println("MLB League: " + String(showNL ? "NL" : "AL"));
+
 #if BATTERY_MONITORING
   uint32_t batteryVoltage = readBatteryVoltage();
   Serial.print(TXT_BATTERY_VOLTAGE);
@@ -243,6 +249,13 @@ void setup() {
   int mlbNextGameStatus = getMlbNextGame(client, mlb_next_game);
   killWiFi(); // WiFi no longer needed
 
+  if (mlbStatus != HTTP_CODE_OK) {
+    Serial.println("MLB Standings API failed: " + String(mlbStatus));
+  }
+  if (mlbNextGameStatus != HTTP_CODE_OK) {
+    Serial.println("MLB Next Game API failed: " + String(mlbNextGameStatus));
+  }
+
   String refreshTimeStr;
   getRefreshTimeStr(refreshTimeStr, timeConfigured, &timeInfo);
   String dateStr;
@@ -258,8 +271,10 @@ void setup() {
     drawAlerts(owm_onecall.alerts, CITY_STRING, dateStr);
 #endif
     drawStatusBar(statusStr, refreshTimeStr, wifiRSSI, batteryVoltage);
-    drawMlbStandings(mlb_standings);
-    if (mlb_next_game.is_game_today) {
+    if (mlbStatus == HTTP_CODE_OK) {
+      drawMlbStandings(mlb_standings);
+    }
+    if (mlbNextGameStatus == HTTP_CODE_OK && mlb_next_game.is_game_today) {
       drawMlbNextGame(mlb_next_game);
     }
   } while (display.nextPage());
